@@ -3,12 +3,16 @@
 <head>
 <style type="text/css">
 body{
-	background-position: center;
-    background-color: #90C98F;
+	<!--background-image:url(https://raw.githubusercontent.com/zapsters/Home/master/images/V4ZapsterLogoGlitch.gif);
+    background-repeat: no-repeat, repeat;
+    background-size: 400px;
+    background-attachment: fixed;--->
+    background-position: center;
+    background-color: black;
 	margin: 0 0px;
 	padding: 0px 0px;
-	font-family: 'supria_sans';
-}
+	}
+
 @font-face {
     font-family: 'bauhausc_demi';
     src: url('https://zapsters.github.io/Home/fonts/bauhausc_demibold_regular-webfont.woff2') format('woff2'),
@@ -16,312 +20,275 @@ body{
     font-weight: normal;
     font-style: normal;
 }
-
 @font-face {
     font-family: supria_sans;
     src: url('https://zapsters.github.io/Home/fonts/SupriaSans-Bold.woff') format('woff');
 	font-weight: normal;
     font-style: normal;
 }
-p {
-	font-family: 'supria_sans';
+.uppercase {
+	text-transform: uppercase;
 }
 .sub {
-	font-family: 'supria_sans';
-	color: #000;
+	font-family: 'bauhausc_demi';
+	color: #fff;
 	text-decoration: none;
 	font-size: 30px;
 	letter-spacing: 0px;
 	margin: 0 0px;
 	padding: 0px 0px;
 }
-.header {
-    position: relative;
-	background-color:rgba(73, 121, 53, 1);
-	width:100%;
-	text-align: center;
-	padding: 20px 0;
+
+.sublink {
+  font-family: 'supria_sans';
+  color: transparent;
+  font-size: 30px;
+  font-weight: 500;
+  letter-spacing: 0px;
+  line-height: 1;
+  position: relative;
 }
-.writableContent {
-	position: relative;
-	width: 60%;
-	left: 50%;
-	margin-left: -30%;
+
+.sublink:hover {
+  font-family: 'supria_sans';
+	opacity: 1;
+  color: #fff;
+  font-size: 30px;
+  font-weight: 500;
+  letter-spacing: 0px;
+  line-height: 1;
+  position: relative;
+}
+
+.sublinkimg {
+  -webkit-transition: 2s all;
+  line-height: 1;
+  position: relative;
+}
+
+.sublinkimg:hover {
+  filter: invert(100%);
+  line-height: 1;
+  position: relative;
+}
+
+.srdiv {
+  animation: shake 35s;
+  animation-iteration-count: infinite;
+}
+
+@keyframes shake {
+  0% { transform: translate(1px, 1px) rotate(0deg); }
+  10% { transform: translate(0px, -1px) rotate(-1deg); }
+  20% { transform: translate(-2px, 0px) rotate(1deg); }
+  30% { transform: translate(2px, 1px) rotate(0deg); }
+  40% { transform: translate(0px, 0px) rotate(1deg); }
+  50% { transform: translate(0px, 1px) rotate(-1deg); }
+  60% { transform: translate(-2px, 0px) rotate(0deg); }
+  70% { transform: translate(2px, 0px) rotate(-1deg); }
+  80% { transform: translate(0px, 0px) rotate(1deg); }
+  90% { transform: translate(0px, 1px) rotate(0deg); }
+  100% { transform: translate(0px, -1px) rotate(-1deg); }
+}
+.underline {
+  text-decoration: underline;
+}
+.subhidden {
+  cursor: context-menu;
+  -webkit-transition: 2s all;
+  opacity: 0.2;
+	font-family: 'supria_sans';
+  color: transparent;
+  font-size: 30px;
+  font-weight: 500;
+  letter-spacing: 0px;
+  line-height: 1;
+  position: relative;
+}
+
+.subhidden:hover {
+  cursor: context-menu;
+  opacity: 0.2;
+  color: #fff;
+  font-size: 30px;
+  font-weight: 500;
+  letter-spacing: 0px;
+  line-height: 1;
+  position: relative;
+}
+.menu {
+	display: inline-block;
+	height: 400px;
+	background-color: rgba(255, 255, 255, 0.04);
+	max-width: 90%;
+	min-width: 90%;
+}
+.menu li {
+  display: inline-block;
+  width: 260px;
+  margin: 10px 10px 0px;
+  padding: 0px 0px 0px;
+  position: relative;
+}
+.menu a {
+  font-family: bauhausc_demi;
+  font-weight: 800;
+  display: block;
+  background: #222;
+  color: #fff;
+  font-size: 30px;
+  text-align: center;
+  text-decoration: none;
+  position: relative;
+}
+
+.menu li:hover {
+
+}
+.menu a:hover {
+  color: #CA1622;
+}
+.bannerlogo {
+   width: 80%;
+	 max-width: 868px;
+   padding: 10px 0px;
+}
+.bottom {
+position: fixed;
+	bottom: 0;
+  margin: 0 0px;
+  padding: 0px 0px;
+}
+.credit {
+	margin: 0 0px;
+	padding: 0px 0px;
+	color: #CA1622;
+}
+.message {
+	font-family: 'supria_sans';
+	color: #001c1a;
+	text-decoration: none;
+	font-size: 30px;
+	letter-spacing: 0px;
+	margin: 0 0px;
 	padding: 0px 0px;
 }
-.player {
-	width: 30px;
-	height: 30px;
-	background-color: cyan;
-	-webkit-transition: all .2s ease;
-  -moz-transition: all .2s ease;
-  transition: all .2s ease;
-	color: white;
-	text-align: center;
-	display: inline-block;
+.hidden {
+	display: none;
 }
-.player_nametag {
-	background-color: rgba(0, 66, 99, 0);
-	transform: translate(-0px, -23px);
-	width: 280px;
-	margin-left: -140px;
-	position: absolute;
-	text-align: center;
-	display: inline-block;
-}
-.border {
-	outline-color: black;
-	background-color: rgba(0, 66, 99, .5);
-	height: 500px;
-	width: 500px;
-	display: inline-block;
-}
-.bottom_div {
-	font-family: 'supria_sans';
-	position:absolute;
-	bottom:0;
-	width:100%;
-	height:70px;
-	font-size: 15px;
-	text-align: left;
+.menu_subheading {
+	position: relative;
+	width: 100%;
+	height: 90%;
+	color: #fff;
+	font-size: 30px;
 }
 </style>
-	<title>Writing Assault</title>
+	<title>ZapsterStudios</title>
 	<link rel="shortcut icon" type="image/png" href="https://zapsters.github.io/Home/images/ZapsterGames.png"/>
-
-</head>
-
+	</head>
 <body>
-<div class="header">
-	<p class="sub">Multiplayer Test</p>
-</div>
-<div class="border">
-	<div class="player" id="host_player">
-		<div class="player_nametag" style="transform: translate(-0px, -40px); color: #fff; ">
-			<p id="host_player_nametext">???</p>
+<center>
+
+<div id="header">
+  <img class="bannerlogo" id="logo" onclick="reveal(0)" src="https://zapsters.github.io/Home/images/ZapsterStudios_Logo_Neon.png" alt="logo" style="filter: invert(0%);">
+  <p class="sub uppercase" style="font-size: 30px; ">Learning today to Improve Your Tomorrow</p>
+  <hr>
+	<p class="message" id="projectSR"></p>
+
+
+  <!--Projects -->
+	<p class="sub" style="font-size: 40px; color: #fff; padding: 20px 0px 0px 0px" ><u>Projects</u></p>
+  <div class="menu">
+    <li class="" onmouseover="showCaption(1)" onmouseleave="showCaption(0)"><a class="" style="font-family: 'supria_sans';" href="/WritingAssault/"><span>WritingAssault</span></a></li>
+    <li class="" onmouseover="showCaption(2)" onmouseleave="showCaption(0)"><a class="" style="font-family: 'supria_sans';" href="/SaER/"><span>Console</span></a></li>
+    <li class="" onmouseover="showCaption(3)" onmouseleave="showCaption(0)"><a class="" style="font-family: 'supria_sans';" href=""><span>LOCKED</span></a></li>
+    <li class="hidden" onmouseover="showCaption(4)" onmouseleave="showCaption(0)" style="display: none;"><a class="" style="font-family: 'supria_sans';" href=""><span>LOCKED</span></a></li>
+		<div class="menu_subheading">
+			<p style="font-family: 'supria_sans'; padding: 10px 0px 0px 0px;" class="sub" id="projects_captiontext">text</p>
 		</div>
+</div>
+<br><br><br>
+<!--Projects -->
+<p class="sub" style="font-size: 40px; color: #fff; padding: 0px 0px 0px 0px;"><u>Personal</u></p>
+<div class="menu">
+	<li class="" style="display: none;"><a class="" href=><span>LOCKED</span></a></li>
+	<li class="" style="display: none;"><a class="" href=><span>LOCKED</span></a></li>
+	<li class="" style="display: none;"><a class="" href=><span>LOCKED</span></a></li>
+	<li class="" style="display: none;"><a class="" href=><span>LOCKED</span></a></li>
+	<div class="menu_subheading">
+		<p style="font-family: 'supria_sans'; padding: 10px 0px 0px 0px;" class="sub" id="personal_captiontext">text</p>
 	</div>
 </div>
 
-<div class="bottom_div" id="logged_in_as" style="display: block">
-	<p id="version_bottom_text" class="sub" style="font-size: 20px;"><br><br></p>
+
+</div>
+</center>
+<div class=bottom>
+<a class="sublink" style="-moz-user-select: none; -webkit-user-select: none; -ms-user-select:none; user-select:none;-o-user-select:none; bottom: 0;"><img class="sublinkimg" src="https://zapsters.github.io/Home/images/ZapsterGames.png" style="width: 100px; margin: -10px 0px;"></a><br>
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/7.22.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/7.22.1/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/7.22.1/firebase-firestore.js"></script>
-<script src="https://www.gstatic.com/firebasejs/7.22.1/firebase-functions.js"></script>
-<script src="https://www.gstatic.com/firebasejs/7.22.1/firebase-database.js"></script>
 
 <script>
-// Your web app's Firebase configuration
-var firebaseConfig = {
-	apiKey: "AIzaSyBGpegMBm6fR6RkbstowC_zAtAX38e5HkI",
-	authDomain: "testing-5a258.firebaseapp.com",
-	databaseURL: "https://testing-5a258.firebaseio.com",
-	projectId: "testing-5a258",
-	storageBucket: "testing-5a258.appspot.com",
-	messagingSenderId: "435727985183",
-	appId: "1:435727985183:web:217a91511be9c7ad1fc32a"
-};
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
-//const	db = firebase.firestore();
-var database = firebase.database();
+function reveal(t) {
+	switch(t) {
+		case 0:
+			document.body.style.visibility = "hidden";
+			break;
+		default:
+			alert("You are on your own Sam");
+			break;
+	}
+}
+var i = 0;
+var speed = 50;
+var pos1 = 'SAER WAS ESTABLISHED TO KEEP YOUR VOICED SILENCED';
+function typeWriter() {
+  if (i < pos1.length) {
+    document.getElementById("projectSR").innerHTML += pos1.charAt(i);
+    i++;
+    setTimeout(typeWriter, speed);
+  } else {
+	i++
+		if (i < pos1.length + 100 && pos1 == 'SAER WAS ESTABLISHED TO KEEP YOUR VOICED SILENCED') {
+			document.getElementById("projectSR").innerHTML = "";
+			pos1 = 'FIGHT AGAINST THE MACHINE';
+			i = 0;
+			typeWriter();
+		} else {
+			document.getElementById("projectSR").innerHTML = "";
+		}
+	}
+}
+function showCaption(id) {
+	console.log(id)
+	switch(id) {
+		case 0:
+		document.getElementById('projects_captiontext').innerHTML = ""
+		break;
+		case 1:
+		document.getElementById('projects_captiontext').innerHTML = "An online game to play with friends. One imposter in your group. Can you pick out their answer and vote them off?"
+		break;
+		case 2:
+		document.getElementById('projects_captiontext').innerHTML = "A virtual console apart of the Science and Entity Research universe."
+		break;
+		case 3:
+		document.getElementById('projects_captiontext').innerHTML = "LOCKED"
+		break;
+	}
+}
 
+
+document.onkeydown = logKey;
+function logKey(e) {
+	//Up arrow last command.
+	if (e.keyCode === 13) {
+		typeWriter();
+	}
+}
 </script>
 
-<script>
-var host_player_position = [250, 250];
-var host_player_identity_x = host_player_position[0];
-var host_player_identity_y = host_player_position[1];
-var movementspeed = 10;
-let keysPressed = {};
-var roomcode = 'multiplayer_test'
-var version = '1.0.0'
-document.getElementById('version_bottom_text').innerHTML = '<br><br>' + version;
 
-function getUrlVars() {
-	var vars = [], hash;
-	var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
-	for(var i = 0; i < hashes.length; i++) {
-	 hash = hashes[i].split('=');
-	 vars.push(hash[0]);
-	 vars[hash[0]] = hash[1];
-	}
-	return vars;
-}
-
-//Name length limit of 20! Add the user to the database!
-var name_raw = getUrlVars()["name"];
-if(name_raw == undefined) {
-	var name_raw = prompt("Please enter your name.", "");
-	if(name_raw == null || name_raw == "") {
-		alert('No username entered. Closing');
-		myWindow.close();
-	} else {
-		var name_filtered = (name_raw.substring(0, 20));
-		document.getElementById('host_player_nametext').innerHTML = name_filtered;
-		firebase.database().ref(roomcode + '/users/' + name_raw).set({
-	    username: name_raw,
-			x: host_player_position[0],
-			y: host_player_position[1]
-  	});
-	}
-}
-host_player_position_update()
-
-//Start checking for updates in the databaseURL
-var roomcode_users_ref = firebase.database().ref(roomcode + '/users');
-roomcode_users_ref.on('child_added', function(doc) {
-  roomcode_users_ref_data = doc.val();
-	var newchild_username = roomcode_users_ref_data.username;
-	var newchild_positionx = roomcode_users_ref_data.x;
-	var newchild_positiony = roomcode_users_ref_data.y;
-	deletePlayers();
-	createPlayer(newchild_username, newchild_positiony, newchild_positionx)
-	console.log(newchild_username)
-});
-
-//Child changed
-var roomcode_users_ref = firebase.database().ref(roomcode + '/users');
-roomcode_users_ref.on('child_changed', function(doc) {
-  roomcode_users_ref_data = doc.val();
-	new_child_username = roomcode_users_ref_data.username;
-	new_child_y = roomcode_users_ref_data.y;
-	new_child_x = roomcode_users_ref_data.x;
-	//console.log('child changed');
-	//createPlayer(new_child_username, new_child_x, new_child_y);
-		//Try will check for errors as it runs
-		try {
-			if(new_child_username != name_filtered) {
-				console.log(new_child_username, "position: " + new_child_x + " // " + new_child_y)
-				current_new_child_id = 'host_' + new_child_username;
-				var document_new_child = document.getElementById(current_new_child_id);
-				document_new_child.style.position = "absolute";
-				document_new_child.style.left = new_child_y + 'px';
-				document_new_child.style.top = new_child_x + 'px';
-			}
-		}
-		catch(err) {
-			//If an error happens when updating player position, Check the database and create any and all players. Should fix the errors in most cases.
-			console.log('Reloading Players // ' + err)
-			deletePlayers(new_child_username);
-			createPlayer(new_child_username, new_child_y, new_child_x)
-			console.log(new_child_username)
-		}
-});
-
-//Child deleted
-var roomcode_users_ref = firebase.database().ref(roomcode + '/users');
-roomcode_users_ref.on('child_removed', function(doc) {
-	deletePlayers('all')
-})
-
-//Delete players
-function deletePlayers(username) {
-	console.log('delete')
-	var allplayers = document.getElementsByClassName("player")
-	var i;
-	for (i = 0; i < allplayers.length; i++) {
-		var current_player_id = allplayers[i].id
-		console.log(current_player_id)
-		if (current_player_id != 'host_player' && current_player_id == username) {
-	  	allplayers[i].remove();
-		}
-		if (current_player_id != 'host_player' && username == 'all') {
-	  	allplayers[i].remove();
-		}
-	}
-}
-
-//When the page is closed delete the user's file
-window.onbeforeunload = function(){
-	firebase.database().ref(roomcode + '/users/').set({
-	});
-}
-
-//Creates a player element with a custom name.
-function createPlayer(name, x, y) {
-	if(name != name_raw) {
-		deletePlayers(name)
-		var allplayers = document.getElementsByClassName(name)
-		var i;
-		var newPlayer = document.createElement("div");
-		newPlayer.setAttribute('class', 'player ' + name);
-		newPlayer.setAttribute("id", "host_" + name);
-		var newPlayerNametag = document.createElement("div");
-		newPlayerNametag.setAttribute('class', 'player_nametag');
-		var new_user_name_filtered = (name.substring(0, 20)); 	//Filter the new users name
-		var newPlayerNameContent = document.createTextNode(new_user_name_filtered);
-		newPlayer.appendChild(newPlayerNametag);
-		newPlayerNametag.appendChild(newPlayerNameContent);
-
-		const border_div = document.getElementById("border");
-	  document.body.insertBefore(newPlayer, border_div);
-		var newcreateplayer = document.getElementById("host_" + name);
-		newcreateplayer.style.position = "absolute";
-		newcreateplayer.style.left = x + 'px';
-		newcreateplayer.style.top = y + 'px';
-	}
-}
-
-function host_player_position_update() {
-	//console.log(host_player_position);
-	var host_player_identity = document.getElementById('host_player');
-	host_player_identity_x = host_player_position[0];
-	host_player_identity_y = host_player_position[1];
-	host_player_identity.style.position = "absolute";
-	host_player_identity.style.left = host_player_identity_y+'px';
-	host_player_identity.style.top = host_player_identity_x+'px';
-
-	document.getElementById('host_player_nametext').innerHTML = name_filtered;
-	firebase.database().ref(roomcode + '/users/' + name_raw).set({
-		username: name_raw,
-		x: host_player_position[0],
-		y: host_player_position[1]
-	});
-}
-
-//Constantly runs. Checks if a button is being held.
-check_movement_button()
-function check_movement_button() {
-	if (keysPressed['w']) {
-		host_player_identity_x = host_player_identity_x + -movementspeed;
-	}
-	if (keysPressed['a']) {
-		host_player_identity_y = host_player_identity_y + -movementspeed;
-	}
-	if (keysPressed['s']) {
-		host_player_identity_x = host_player_identity_x + movementspeed;
-	}
-	if (keysPressed['d']) {
-		host_player_identity_y = host_player_identity_y + movementspeed;
-	}
-	host_player_position = [host_player_identity_x, host_player_identity_y]
-	host_player_position_update()
-	//console.log(keysPressed)
-	setTimeout(function(){
-		check_movement_button()
-	}, 50);
-}
-
-//If button is pressed, add it to keysPressed array.
-document.addEventListener('keydown', (event) => {
-   keysPressed[event.key] = true;
-});
-
-//If button is released, remove it from keysPressed array.
-document.addEventListener('keyup', (event) => {
-   delete keysPressed[event.key];
-});
-
-
-//Onblur remove pressed keys. Prevents character getting stuck in a certain direction.
-window.onblur = function() {
-   keysPressed = {};
-	 console.log('unfocused!')
-};
-</script>
 </body>
+
 </html>
