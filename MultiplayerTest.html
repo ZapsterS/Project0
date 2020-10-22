@@ -297,6 +297,10 @@ window.onbeforeunload = function(){
 	firebase.database().ref(roomcode + '/users/').set({
 	});
 }
+window.onunload = function(){
+	firebase.database().ref(roomcode + '/users/').set({
+	});
+}
 
 //Creates a player element with a custom name.
 function createPlayer(name, x, y) {
