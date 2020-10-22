@@ -183,8 +183,11 @@ var host_player_identity_y = host_player_position[1];
 var movementspeed = 10;
 let keysPressed = {};
 var roomcode = 'multiplayer_test'
-var version = '1.0.0'
+var version = '1.1.0'
 var testing = '0'
+var style_modifier;
+var host_player_identity;
+var angle_count = 0;
 //if testing = 1, you will not be prompted to join the game.
 document.getElementById('version_bottom_text').innerHTML = '<br><br>' + version;
 
@@ -215,7 +218,10 @@ if (testing != '1') {
 			alert('No username entered. Closing');
 			myWindow.close();
 		} else {
-			var name_filtered = (name_raw.substring(0, 20));
+			//Get text between () to get a style modifier. Then remove the text between parentheses
+			style_modifier = name_raw.substring(name_raw.indexOf("(")+1,name_raw.indexOf(")"));
+			name_style_modifier_remove = name_raw.replace(/ *\([^)]*\) */g, "");
+			var name_filtered = (name_style_modifier_remove.substring(0, 20));
 			document.getElementById('host_player_nametext').innerHTML = name_filtered;
 			firebase.database().ref(roomcode + '/users/' + name_raw).set({
 		    username: name_raw,
@@ -250,7 +256,7 @@ roomcode_users_ref.on('child_changed', function(doc) {
 	//createPlayer(new_child_username, new_child_x, new_child_y);
 		//Try will check for errors as it runs
 		try {
-			if(new_child_username != name_filtered) {
+			if(new_child_username != name_raw) {
 				console.log(new_child_username, "position: " + new_child_x + " // " + new_child_y)
 				current_new_child_id = 'host_' + new_child_username;
 				var document_new_child = document.getElementById(current_new_child_id);
@@ -308,12 +314,33 @@ function createPlayer(name, x, y) {
 		var allplayers = document.getElementsByClassName(name)
 		var i;
 		var newPlayer = document.createElement("div");
-		newPlayer.setAttribute('class', 'player ' + name);
+		newPlayer.setAttribute('class', 'player ');
 		newPlayer.setAttribute("id", "host_" + name);
 		var newPlayerNametag = document.createElement("div");
 		newPlayerNametag.setAttribute('class', 'player_nametag');
-		var new_user_name_filtered = (name.substring(0, 20)); 	//Filter the new users name
+
+
+		new_user_style_modifier = name.substring(name.indexOf("(")+1,name.indexOf(")"));
+		new_user_name_style_modifier_remove = name.replace(/ *\([^)]*\) */g, "");
+		var new_user_name_filtered = (new_user_name_style_modifier_remove.substring(0, 20)); 	//Filter the new users name
 		var newPlayerNameContent = document.createTextNode(new_user_name_filtered);
+
+		//SpecialEffects
+		if (new_user_style_modifier.includes('0x4658')) {
+			newPlayer.style.background = "linear-gradient(to right,  #5BCEFA 0%,#5BCEFA 20%,#F5A9B8 20%,#F5A9B8 40%,#ffffff 40%,#ffffff 60%,#F5A9B8 60%,#F5A9B8 80%,#5BCEFA 80%)";
+		}
+		if (new_user_style_modifier.includes('0x3032')) {
+			newPlayer.style.background = "linear-gradient(to right,  #D42C00 0%,#D42C00 20%,#FD9855 20%,#FD9855 40%,#ffffff 40%,#ffffff 60%,#D161A2 60%,#D161A2 80%,#A20161 80%)";
+		}
+		if (new_user_style_modifier.includes('big')) {
+			newPlayer.style.transform = "scale(3, 3)";
+		}
+		if (new_user_style_modifier.includes('spin')) {
+			var new_user_classes = newPlayer.className;
+			newPlayer.setAttribute('class', new_user_classes + '(spin)');
+			spin(newPlayer)
+		}
+
 		newPlayer.appendChild(newPlayerNametag);
 		newPlayerNametag.appendChild(newPlayerNameContent);
 
@@ -326,9 +353,43 @@ function createPlayer(name, x, y) {
 	}
 }
 
+function spin(playertospin) {
+	angle_count += 10
+	if (angle_count > 100) {angle_count=0;}
+	playertospin.style.transform += "rotate(" + angle_count + "deg)";
+	setTimeout(function(){ spin(playertospin) }, 50);
+}
+
 function host_player_position_update() {
 	//console.log(host_player_position);
-	var host_player_identity = document.getElementById('host_player');
+	host_player_identity = document.getElementById('host_player');
+	//We got the style modifier back when the host joins the game
+	//var style_modifier = name_raw.substring(name_raw.indexOf("(")+1,name_raw.indexOf(")"));
+
+	//SpecialEffects
+	if (style_modifier.includes('0x4658')) {
+		host_player_identity.style.background = "linear-gradient(to right,  #5BCEFA 0%,#5BCEFA 20%,#F5A9B8 20%,#F5A9B8 40%,#ffffff 40%,#ffffff 60%,#F5A9B8 60%,#F5A9B8 80%,#5BCEFA 80%)";
+	}
+	if (style_modifier.includes('0x3032')) {
+		host_player_identity.style.background = "linear-gradient(to right,  #D42C00 0%,#D42C00 20%,#FD9855 20%,#FD9855 40%,#ffffff 40%,#ffffff 60%,#D161A2 60%,#D161A2 80%,#A20161 80%)";
+	}
+	if (style_modifier.includes('big')) {
+		host_player_current_transforms = host_player_identity.style.transform;
+		if(host_player_current_transforms.includes('scale')) {} else {
+			host_player_identity.style.transform += "scale(3, 3)";
+		}
+	}
+	if (style_modifier.includes('spin')) {
+		angle_count += 10
+		if (angle_count > 100) {angle_count=0;}
+		host_player_identity.style.transform += "rotate(" + angle_count + "deg)";
+	}
+	//Movementspeed is host side. So only the host is affected.
+	if (style_modifier.includes('fast')) {
+		movementspeed =	20; 
+	}
+
+
 	host_player_identity_x = host_player_position[0];
 	host_player_identity_y = host_player_position[1];
 	host_player_identity.style.position = "absolute";
