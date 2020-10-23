@@ -327,10 +327,10 @@ function createPlayer(name, x, y) {
 
 		//SpecialEffects
 		if (new_user_style_modifier.includes('0x4658')) {
-			newPlayer.style.background = "linear-gradient(to right,  #5BCEFA 0%,#5BCEFA 20%,#F5A9B8 20%,#F5A9B8 40%,#ffffff 40%,#ffffff 60%,#F5A9B8 60%,#F5A9B8 80%,#5BCEFA 80%)";
+			newPlayer.style.background = "linear-gradient(#5BCEFA 0%,#5BCEFA 20%,#F5A9B8 20%,#F5A9B8 40%,#ffffff 40%,#ffffff 60%,#F5A9B8 60%,#F5A9B8 80%,#5BCEFA 80%)";
 		}
 		if (new_user_style_modifier.includes('0x3032')) {
-			newPlayer.style.background = "linear-gradient(to right,  #D42C00 0%,#D42C00 20%,#FD9855 20%,#FD9855 40%,#ffffff 40%,#ffffff 60%,#D161A2 60%,#D161A2 80%,#A20161 80%)";
+			newPlayer.style.background = "linear-gradient(#D42C00 0%,#D42C00 20%,#FD9855 20%,#FD9855 40%,#ffffff 40%,#ffffff 60%,#D161A2 60%,#D161A2 80%,#A20161 80%)";
 		}
 		if (new_user_style_modifier.includes('big')) {
 			newPlayer.style.transform = "scale(3, 3)";
@@ -368,10 +368,10 @@ function host_player_position_update() {
 
 	//SpecialEffects
 	if (style_modifier.includes('0x4658')) {
-		host_player_identity.style.background = "linear-gradient(to right,  #5BCEFA 0%,#5BCEFA 20%,#F5A9B8 20%,#F5A9B8 40%,#ffffff 40%,#ffffff 60%,#F5A9B8 60%,#F5A9B8 80%,#5BCEFA 80%)";
+		host_player_identity.style.background = "linear-gradient(#5BCEFA 0%,#5BCEFA 20%,#F5A9B8 20%,#F5A9B8 40%,#ffffff 40%,#ffffff 60%,#F5A9B8 60%,#F5A9B8 80%,#5BCEFA 80%)";
 	}
 	if (style_modifier.includes('0x3032')) {
-		host_player_identity.style.background = "linear-gradient(to right,  #D42C00 0%,#D42C00 20%,#FD9855 20%,#FD9855 40%,#ffffff 40%,#ffffff 60%,#D161A2 60%,#D161A2 80%,#A20161 80%)";
+		host_player_identity.style.background = "linear-gradient(#D42C00 0%,#D42C00 20%,#FD9855 20%,#FD9855 40%,#ffffff 40%,#ffffff 60%,#D161A2 60%,#D161A2 80%,#A20161 80%)";
 	}
 	if (style_modifier.includes('big')) {
 		host_player_current_transforms = host_player_identity.style.transform;
@@ -386,7 +386,7 @@ function host_player_position_update() {
 	}
 	//Movementspeed is host side. So only the host is affected.
 	if (style_modifier.includes('fast')) {
-		movementspeed =	20; 
+		movementspeed =	20;
 	}
 
 
