@@ -1,13 +1,12 @@
+
 <!DOCTYPE html>
 <html>
 <head>
 <style type="text/css">
 body{
 	background-position: center;
-  background-color: #90C98F;
-	background-color: rgba(0, 66, 99, 0);
-	background-color: #90C98F;
-	margin: 0 0px;
+	background-color: #d1d1d1;
+	margin: 0px 0px;
 	padding: 0px 0px;
 	font-family: 'supria_sans';
 
@@ -72,6 +71,11 @@ p {
 	text-align: center;
 	display: inline-block;
 }
+#host_player {
+	-webkit-transition: all 0s ease;
+  -moz-transition: all 0s ease;
+  transition: all 0s ease;
+}
 .player_nametag {
 	background-color: rgba(0, 66, 99, 0);
 	transform: translate(-0px, -23px);
@@ -80,12 +84,7 @@ p {
 	position: absolute;
 	text-align: center;
 	display: inline-block;
-}
-.border {
-	/* Border is obsolete. However the players are created under this border.
- 	Deleting this will cause problems.*/
-	background-color: rgba(0, 66, 99, 0);
-	height: 50px;
+	color: black;
 }
 .bottom_div {
 	font-family: 'supria_sans';
@@ -122,6 +121,24 @@ p {
             user-select: none; /* Non-prefixed version, currently
                                   supported by Chrome, Edge, Opera and Firefox */
 }
+.border {
+	/* Border is obsolete. However the players are created under this border.
+ 	Deleting this will cause problems.*/
+	background-color: rgba(255, 255, 255, 1);
+	border-style: dashed;
+	border-color: rgba(0, 0, 0, 0.1);
+	height: 2000px;
+	width: 2000px;
+	position: relative;
+}
+.borderbackground {
+	/* Border is obsolete. However the players are created under this border.
+ 	Deleting this will cause problems.*/
+	background-color: rgba(0, 66, 99, 0);
+	height: 4000px;
+	width: 4000px;
+	margin: 500px;
+}
 </style>
 	<title>MultiplayerTest</title>
 	<link rel="shortcut icon" type="image/png" href="https://zapsters.github.io/Home/images/ZapsterGames.png"/>
@@ -129,19 +146,23 @@ p {
 </head>
 
 <body>
+<!--
 <div class="header">
 	<p class="sub">Multiplayer Test</p>
 </div>
-<div class="border">
-	<div class="player" id="host_player">
-		<div class="player_nametag" style="transform: translate(-0px, -40px); color: #fff; ">
-			<p id="host_player_nametext">???</p>
+-->
+
+<div class="borderbackground">
+	<div class="border" id="border">
+		<div class="player" id="host_player">
+			<div class="player_nametag" style="transform: translate(-0px, -40px);">
+				<p id="host_player_nametext">???</p>
+			</div>
 		</div>
 	</div>
 </div>
 
 <div class="bottom_controls_div" id="controls" style="display: none">
-
 	<div ontouchstart="keysPressed['w'] = true;" ontouchend="delete keysPressed['w'];" style="margin: 0px 0px 175px 175px;" usemap="#mobile_direction" ontouchstart="keysPressed['w'] = true;" width="155px" height="155px" class="fix noselect"></div>
 	<div ontouchstart="keysPressed['s'] = true;" ontouchend="delete keysPressed['s'];" style="transform: rotate(180deg); margin: 0px 0px 0px 175px;" usemap="#mobile_direction" ontouchstart="keysPressed['w'] = true;" width="155px" height="155px" class="fix noselect" src="https://zapsters.github.io/Project0/images/arrow.png"></div>
 	<div ontouchstart="keysPressed['a'] = true;" ontouchend="delete keysPressed['a'];" style="transform: rotate(270deg); margin: 0px 0px 0px 0px;" usemap="#mobile_direction" ontouchstart="keysPressed['w'] = true;" width="155px" height="155px" class="fix noselect" src="https://zapsters.github.io/Project0/images/arrow.png"></div>
@@ -177,275 +198,337 @@ var database = firebase.database();
 </script>
 
 <script>
-var host_player_position = [250, 250];
-var host_player_identity_x = host_player_position[0];
-var host_player_identity_y = host_player_position[1];
-var movementspeed = 10;
-let keysPressed = {};
-var roomcode = 'multiplayer_test'
-var version = '1.1.0'
-var testing = '0'
-var style_modifier;
-var host_player_identity;
-var angle_count = 0;
-//if testing = 1, you will not be prompted to join the game.
+var border_limits = [500, 0, 0, 2000, 2000]; //Margins, Minimum x, minimum y, maximum x, maximum y
+var host_player_position = [400, 400]; //Default host spawn position
+var host_player_identity_x = host_player_position[0]; //Set players x
+var host_player_identity_y = host_player_position[1]; //Set players y
+var player_size = 30; //Used for collision.
+var movementspeed = 10; //Deafult player movementspeed
+var keysPressed = {}; //Keyspressed for movement
+var roomcode; //Default roomcode is "multiplayer_test"
+var version = '1.1.1'; //version data
+var style_modifier; //The data in parentheses. Used for special styles
+var host_player_identity; //The element of the host player
+var angle_count = 0; //Used for host spin animation
 document.getElementById('version_bottom_text').innerHTML = '<br><br>' + version;
 
 function getUrlVars() {
-	var vars = [], hash;
-	var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
-	for(var i = 0; i < hashes.length; i++) {
-	 hash = hashes[i].split('=');
-	 vars.push(hash[0]);
-	 vars[hash[0]] = hash[1];
-	}
-	return vars;
+    var vars = [],
+        hash;
+    var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
+    for (var i = 0; i < hashes.length; i++) {
+        hash = hashes[i].split('=');
+        vars.push(hash[0]);
+        vars[hash[0]] = hash[1];
+    }
+    return vars;
 }
+
+/*URL VARS
+	rm = [roomcode] -- 1.1.1 currently only way to join a custom room. Functionality is perfect.
+	name = [name] -- 1.1.1 currently only way to have a name without using the input box.
+
+
+
+*/
+
+//If there is a roomcode in the URL, set the roomcode.
+var roomcode_url = getUrlVars()["rm"];
+if (roomcode_url != undefined) {
+    roomcode = roomcode_url;
+} else {
+	roomcode = "multiplayer_test";
+}
+console.log('roomcode = ', roomcode);
 
 //Check if the user is using a mobile devide then show mobile controls
-if(/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|ipad|iris|kindle|Android|Silk|lge |maemo|midp|mmp|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows (ce|phone)|xda|xiino/i.test(navigator.userAgent)
-    || /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(navigator.userAgent.substr(0,4))) {
-		document.getElementById('controls').style.display = "block"
+if (/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|ipad|iris|kindle|Android|Silk|lge |maemo|midp|mmp|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows (ce|phone)|xda|xiino/i.test(navigator.userAgent) ||
+    /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(navigator.userAgent.substr(0, 4))) {
+    document.getElementById('controls').style.display = "block";
 }
 
 
-if (testing != '1') {
 //Name length limit of 20! Add the user to the database!
-	var name_raw = getUrlVars()["name"];
-	if(name_raw == undefined) {
-		var name_raw = prompt("Please enter your name.", "");
-		if(name_raw == null || name_raw == "") {
-			alert('No username entered. Closing');
-			myWindow.close();
-		} else {
-			//Get text between () to get a style modifier. Then remove the text between parentheses
-			style_modifier = name_raw.substring(name_raw.indexOf("(")+1,name_raw.indexOf(")"));
-			name_style_modifier_remove = name_raw.replace(/ *\([^)]*\) */g, "");
-			var name_filtered = (name_style_modifier_remove.substring(0, 20));
-			document.getElementById('host_player_nametext').innerHTML = name_filtered;
-			firebase.database().ref(roomcode + '/users/' + name_raw).set({
-		    username: name_raw,
-				x: host_player_position[0],
-				y: host_player_position[1]
-	  	});
-		}
-	}
-	host_player_position_update()
+var name_raw = getUrlVars()["name"];
+if (name_raw == undefined) {
+    //if URL var does not include name...
+    var name_raw = prompt("Please enter your name.", "");
+    if (name_raw == null || name_raw == "") {
+        alert('No username entered. Closing');
+        myWindow.close();
+    } else {
+        //Get text between () to get a style modifier. Then remove the text between parentheses
+        style_modifier = name_raw.substring(name_raw.indexOf("(") + 1, name_raw.indexOf(")"));
+        name_style_modifier_remove = name_raw.replace(/ *\([^)]*\) */g, "");
+        var name_filtered = (name_style_modifier_remove.substring(0, 20));
+        document.getElementById('host_player_nametext').innerHTML = name_filtered;
+        firebase.database().ref(roomcode + '/users/' + name_raw).set({
+            username: name_raw,
+            x: host_player_position[0],
+            y: host_player_position[1]
+        });
+    }
+} else {
+    //If URL var does include a name...
+    style_modifier = name_raw.substring(name_raw.indexOf("(") + 1, name_raw.indexOf(")"));
+    name_style_modifier_remove = name_raw.replace(/ *\([^)]*\) */g, "");
+    var name_filtered = (name_style_modifier_remove.substring(0, 20));
+    document.getElementById('host_player_nametext').innerHTML = name_filtered;
+    firebase.database().ref(roomcode + '/users/' + name_raw).set({
+        username: name_raw,
+        x: host_player_position[0],
+        y: host_player_position[1]
+    });
 }
+host_player_position_update();
 
 //Start checking for updates in the databaseURL
 var roomcode_users_ref = firebase.database().ref(roomcode + '/users');
 roomcode_users_ref.on('child_added', function(doc) {
-  roomcode_users_ref_data = doc.val();
-	var newchild_username = roomcode_users_ref_data.username;
-	var newchild_positionx = roomcode_users_ref_data.x;
-	var newchild_positiony = roomcode_users_ref_data.y;
-	deletePlayers();
-	createPlayer(newchild_username, newchild_positiony, newchild_positionx)
-	console.log(newchild_username)
+    roomcode_users_ref_data = doc.val();
+    var newchild_username = roomcode_users_ref_data.username;
+    var newchild_positionx = roomcode_users_ref_data.x;
+    var newchild_positiony = roomcode_users_ref_data.y;
+    deletePlayers();
+    createPlayer(newchild_username, newchild_positiony, newchild_positionx);
+    console.log(newchild_username);
 });
 
 //Child changed
 var roomcode_users_ref = firebase.database().ref(roomcode + '/users');
 roomcode_users_ref.on('child_changed', function(doc) {
-  roomcode_users_ref_data = doc.val();
-	new_child_username = roomcode_users_ref_data.username;
-	new_child_y = roomcode_users_ref_data.y;
-	new_child_x = roomcode_users_ref_data.x;
-	//console.log('child changed');
-	//createPlayer(new_child_username, new_child_x, new_child_y);
-		//Try will check for errors as it runs
-		try {
-			if(new_child_username != name_raw) {
-				console.log(new_child_username, "position: " + new_child_x + " // " + new_child_y)
-				current_new_child_id = 'host_' + new_child_username;
-				var document_new_child = document.getElementById(current_new_child_id);
-				document_new_child.style.position = "absolute";
-				document_new_child.style.left = new_child_y + 'px';
-				document_new_child.style.top = new_child_x + 'px';
-			}
-		}
-		catch(err) {
-			//If an error happens when updating player position, Check the database and create any and all players. Should fix the errors in most cases.
-			console.log('Reloading Players // ' + err)
-			deletePlayers(new_child_username);
-			createPlayer(new_child_username, new_child_y, new_child_x)
-			console.log(new_child_username)
-		}
+    roomcode_users_ref_data = doc.val();
+    new_child_username = roomcode_users_ref_data.username;
+    new_child_y = roomcode_users_ref_data.y;
+    new_child_x = roomcode_users_ref_data.x;
+    //console.log('child changed');
+    //createPlayer(new_child_username, new_child_x, new_child_y);
+    //Try will check for errors as it runs
+    try {
+        if (new_child_username != name_raw) {
+            //Alert new player position
+            //console.log(new_child_username, "position: " + new_child_x + " // " + new_child_y)
+            current_new_child_id = 'host_' + new_child_username;
+            var document_new_child = document.getElementById(current_new_child_id);
+            document_new_child.style.position = "absolute";
+            document_new_child.style.left = new_child_y + 'px';
+            document_new_child.style.top = new_child_x + 'px';
+        }
+    } catch (err) {
+        //If an error happens when updating player position, Check the database and create any and all players. Should fix the errors in most cases.
+        console.log('Reloading Players // ' + err);
+        deletePlayers(new_child_username);
+        createPlayer(new_child_username, new_child_y, new_child_x);
+        console.log(new_child_username);
+    }
 });
 
 //Child deleted
 var roomcode_users_ref = firebase.database().ref(roomcode + '/users');
 roomcode_users_ref.on('child_removed', function(doc) {
-	deletePlayers('all')
-})
+    deletePlayers('all');
+});
 
 //Delete players
 function deletePlayers(username) {
-	console.log('delete')
-	var allplayers = document.getElementsByClassName("player")
-	var i;
-	for (i = 0; i < allplayers.length; i++) {
-		var current_player_id = allplayers[i].id
-		console.log(current_player_id)
-		if (current_player_id != 'host_player' && current_player_id == username) {
-	  	allplayers[i].remove();
-		}
-		if (current_player_id != 'host_player' && username == 'all') {
-	  	allplayers[i].remove();
-		}
-	}
+    var allplayers = document.getElementsByClassName("player");
+    var i;
+    for (i = 0; i < allplayers.length; i++) {
+        var current_player_id = allplayers[i].id;
+        if (current_player_id != 'host_player' && current_player_id == username) {
+            allplayers[i].remove();
+        }
+        if (current_player_id != 'host_player' && username == 'all') {
+            allplayers[i].remove();
+        }
+    }
 }
 
-//When the page is closed delete the user's file
-window.onbeforeunload = function(){
-	firebase.database().ref(roomcode + '/users/').set({
-	});
-}
-window.onunload = function(){
-	firebase.database().ref(roomcode + '/users/').set({
-	});
-}
-
-//Creates a player element with a custom name.
-function createPlayer(name, x, y) {
-	if(name != name_raw) {
-		deletePlayers(name)
-		var allplayers = document.getElementsByClassName(name)
-		var i;
-		var newPlayer = document.createElement("div");
-		newPlayer.setAttribute('class', 'player ');
-		newPlayer.setAttribute("id", "host_" + name);
-		var newPlayerNametag = document.createElement("div");
-		newPlayerNametag.setAttribute('class', 'player_nametag');
-
-
-		new_user_style_modifier = name.substring(name.indexOf("(")+1,name.indexOf(")"));
-		new_user_name_style_modifier_remove = name.replace(/ *\([^)]*\) */g, "");
-		var new_user_name_filtered = (new_user_name_style_modifier_remove.substring(0, 20)); 	//Filter the new users name
-		var newPlayerNameContent = document.createTextNode(new_user_name_filtered);
-
-		//SpecialEffects
-		if (new_user_style_modifier.includes('0x4658')) {
-			newPlayer.style.background = "linear-gradient(#5BCEFA 0%,#5BCEFA 20%,#F5A9B8 20%,#F5A9B8 40%,#ffffff 40%,#ffffff 60%,#F5A9B8 60%,#F5A9B8 80%,#5BCEFA 80%)";
-		}
-		if (new_user_style_modifier.includes('0x3032')) {
-			newPlayer.style.background = "linear-gradient(#D42C00 0%,#D42C00 20%,#FD9855 20%,#FD9855 40%,#ffffff 40%,#ffffff 60%,#D161A2 60%,#D161A2 80%,#A20161 80%)";
-		}
-		if (new_user_style_modifier.includes('big')) {
-			newPlayer.style.transform = "scale(3, 3)";
-		}
-		if (new_user_style_modifier.includes('spin')) {
-			var new_user_classes = newPlayer.className;
-			newPlayer.setAttribute('class', new_user_classes + '(spin)');
-			spin(newPlayer)
-		}
-
-		newPlayer.appendChild(newPlayerNametag);
-		newPlayerNametag.appendChild(newPlayerNameContent);
-
-		const border_div = document.getElementById("border");
-	  document.body.insertBefore(newPlayer, border_div);
-		var newcreateplayer = document.getElementById("host_" + name);
-		newcreateplayer.style.position = "absolute";
-		newcreateplayer.style.left = x + 'px';
-		newcreateplayer.style.top = y + 'px';
-	}
-}
-
-function spin(playertospin) {
-	angle_count += 10
-	if (angle_count > 100) {angle_count=0;}
-	playertospin.style.transform += "rotate(" + angle_count + "deg)";
-	setTimeout(function(){ spin(playertospin) }, 50);
-}
-
+//Update player host position.
 function host_player_position_update() {
-	//console.log(host_player_position);
-	host_player_identity = document.getElementById('host_player');
-	//We got the style modifier back when the host joins the game
-	//var style_modifier = name_raw.substring(name_raw.indexOf("(")+1,name_raw.indexOf(")"));
+    //console.log(host_player_position);
+    host_player_identity = document.getElementById('host_player');
+    //We got the style modifier back when the host joins the game
+    //var style_modifier = name_raw.substring(name_raw.indexOf("(")+1,name_raw.indexOf(")"));
 
-	//SpecialEffects
-	if (style_modifier.includes('0x4658')) {
-		host_player_identity.style.background = "linear-gradient(#5BCEFA 0%,#5BCEFA 20%,#F5A9B8 20%,#F5A9B8 40%,#ffffff 40%,#ffffff 60%,#F5A9B8 60%,#F5A9B8 80%,#5BCEFA 80%)";
-	}
-	if (style_modifier.includes('0x3032')) {
-		host_player_identity.style.background = "linear-gradient(#D42C00 0%,#D42C00 20%,#FD9855 20%,#FD9855 40%,#ffffff 40%,#ffffff 60%,#D161A2 60%,#D161A2 80%,#A20161 80%)";
-	}
-	if (style_modifier.includes('big')) {
-		host_player_current_transforms = host_player_identity.style.transform;
-		if(host_player_current_transforms.includes('scale')) {} else {
-			host_player_identity.style.transform += "scale(3, 3)";
-		}
-	}
-	if (style_modifier.includes('spin')) {
-		angle_count += 10
-		if (angle_count > 100) {angle_count=0;}
-		host_player_identity.style.transform += "rotate(" + angle_count + "deg)";
-	}
-	//Movementspeed is host side. So only the host is affected.
-	if (style_modifier.includes('fast')) {
-		movementspeed =	20;
-	}
+    //SpecialEffects
+    if (style_modifier.includes('0x4658')) {
+        host_player_identity.style.background = "linear-gradient(#5BCEFA 0%,#5BCEFA 20%,#F5A9B8 20%,#F5A9B8 40%,#ffffff 40%,#ffffff 60%,#F5A9B8 60%,#F5A9B8 80%,#5BCEFA 80%)";
+    }
+    if (style_modifier.includes('0x3032')) {
+        host_player_identity.style.background = "linear-gradient(#D42C00 0%,#D42C00 20%,#FD9855 20%,#FD9855 40%,#ffffff 40%,#ffffff 60%,#D161A2 60%,#D161A2 80%,#A20161 80%)";
+    }
+    if (style_modifier.includes('big')) {
+        host_player_current_transforms = host_player_identity.style.transform;
+        if (host_player_current_transforms.includes('scale')) {} else {
+            host_player_identity.style.transform += "scale(3, 3)";
+        }
+    }
+    if (style_modifier.includes('spin')) {
+        angle_count += 10;
+        if (angle_count > 100) {
+            angle_count = 0;
+        }
+        host_player_identity.style.transform += "rotate(" + angle_count + "deg)";
+    }
+    //Movementspeed is host side. So only the host is affected.
+    if (style_modifier.includes('fast')) {
+        movementspeed = 20;
+    }
 
 
-	host_player_identity_x = host_player_position[0];
-	host_player_identity_y = host_player_position[1];
-	host_player_identity.style.position = "absolute";
-	host_player_identity.style.left = host_player_identity_y+'px';
-	host_player_identity.style.top = host_player_identity_x+'px';
+    host_player_identity_x = host_player_position[1];
+    host_player_identity_y = host_player_position[0];
+    host_player_identity.style.position = "absolute";
+    host_player_identity.style.left = host_player_identity_x + 'px';
+    host_player_identity.style.top = host_player_identity_y + 'px';
 
-	document.getElementById('host_player_nametext').innerHTML = name_filtered;
-	firebase.database().ref(roomcode + '/users/' + name_raw).set({
-		username: name_raw,
-		x: host_player_position[0],
-		y: host_player_position[1]
-	});
+    document.getElementById('host_player_nametext').innerHTML = name_filtered;
+    firebase.database().ref(roomcode + '/users/' + name_raw).set({
+        username: name_raw,
+        x: host_player_position[0],
+        y: host_player_position[1]
+    });
 }
+
+
+
+//Creates a player element with a custom name. Does not include host
+function createPlayer(name, x, y) {
+    if (name != name_raw) {
+        deletePlayers(name);
+        var allplayers = document.getElementsByClassName(name);
+        var i;
+        var newPlayer = document.createElement("div");
+        newPlayer.setAttribute('class', 'player ');
+        newPlayer.setAttribute("id", "host_" + name);
+        var newPlayerNametag = document.createElement("div");
+        newPlayerNametag.setAttribute('class', 'player_nametag');
+
+
+        new_user_style_modifier = name.substring(name.indexOf("(") + 1, name.indexOf(")"));
+        new_user_name_style_modifier_remove = name.replace(/ *\([^)]*\) */g, "");
+        var new_user_name_filtered = (new_user_name_style_modifier_remove.substring(0, 20)); //Filter the new users name
+        var newPlayerNameContent = document.createTextNode(new_user_name_filtered);
+
+        //SpecialEffects
+        if (new_user_style_modifier.includes('0x4658')) {
+            newPlayer.style.background = "linear-gradient(#5BCEFA 0%,#5BCEFA 20%,#F5A9B8 20%,#F5A9B8 40%,#ffffff 40%,#ffffff 60%,#F5A9B8 60%,#F5A9B8 80%,#5BCEFA 80%)";
+        }
+        if (new_user_style_modifier.includes('0x3032')) {
+            newPlayer.style.background = "linear-gradient(#D42C00 0%,#D42C00 20%,#FD9855 20%,#FD9855 40%,#ffffff 40%,#ffffff 60%,#D161A2 60%,#D161A2 80%,#A20161 80%)";
+        }
+        if (new_user_style_modifier.includes('big')) {
+            newPlayer.style.transform = "scale(3, 3)";
+        }
+        if (new_user_style_modifier.includes('spin')) {
+            var new_user_classes = newPlayer.className;
+            newPlayer.setAttribute('class', new_user_classes + '(spin)');
+            spin(newPlayer);
+        }
+
+        document.getElementById("border").appendChild(newPlayer);
+        newPlayer.appendChild(newPlayerNametag);
+        newPlayerNametag.appendChild(newPlayerNameContent);
+        var border_div = document.getElementById("border");
+        var newcreateplayer = document.getElementById("host_" + name);
+        newcreateplayer.style.position = "absolute";
+        newcreateplayer.style.left = x + 'px';
+        newcreateplayer.style.top = y + 'px';
+    }
+}
+
+
+//Used for special player modifier.
+function spin(playertospin) {
+    angle_count += 10;
+    if (angle_count > 100) {
+        angle_count = 0;
+    }
+    playertospin.style.transform += "rotate(" + angle_count + "deg)";
+    setTimeout(function() {
+        spin(playertospin);
+    }, 50);
+}
+
 
 //Constantly runs. Checks if a button is being held.
-check_movement_button()
+check_movement_button();
+
 function check_movement_button() {
-	if (keysPressed['w']) {
-		host_player_identity_x = host_player_identity_x + -movementspeed;
-	}
-	if (keysPressed['a']) {
-		host_player_identity_y = host_player_identity_y + -movementspeed;
-	}
-	if (keysPressed['s']) {
-		host_player_identity_x = host_player_identity_x + movementspeed;
-	}
-	if (keysPressed['d']) {
-		host_player_identity_y = host_player_identity_y + movementspeed;
-	}
-	host_player_position = [host_player_identity_x, host_player_identity_y]
-	host_player_position_update()
-	//console.log(keysPressed)
-	setTimeout(function(){
-		check_movement_button()
-	}, 50);
+    if (keysPressed['w']) {
+        if (host_player_identity_y > border_limits[1]) {
+            host_player_identity_y = host_player_identity_y + -movementspeed;
+        } else {
+            host_player_identity_y = border_limits[1];
+        }
+    }
+    if (keysPressed['a']) {
+        if (host_player_identity_x > border_limits[2]) {
+            host_player_identity_x = host_player_identity_x + -movementspeed;
+        } else {
+            host_player_identity_x = border_limits[2];
+        }
+    }
+    if (keysPressed['s']) {
+        if (host_player_identity_y < border_limits[3] - player_size) {
+            host_player_identity_y = host_player_identity_y + movementspeed;
+        } else {
+            host_player_identity_y = border_limits[3] - player_size;
+        }
+    }
+    if (keysPressed['d']) {
+        if (host_player_identity_x < border_limits[4] - player_size) {
+            host_player_identity_x = host_player_identity_x + movementspeed;
+        } else {
+            host_player_identity_x = border_limits[4] - player_size;
+        }
+    }
+    host_player_position = [host_player_identity_y, host_player_identity_x];
+    host_player_position_update();
+
+    //Center player in screen
+    window.scrollTo(host_player_identity_x + (player_size / 2), host_player_identity_y + 15);
+
+
+    setTimeout(function() {
+        check_movement_button();
+    }, 50);
 }
 
+
+
+//TELEPORT FUNCTION --- TELEPORTS THE PLAYER AND SETS THEIR LOCATION LOCALLY...
 function teleport(x, y) {
-	host_player_identity_x = x;
-	host_player_identity_y = y;
+    host_player_identity_x = x;
+    host_player_identity_y = y;
 }
+
+
+
 
 //If button is pressed, add it to keysPressed array.
 document.addEventListener('keydown', (event) => {
-   keysPressed[event.key] = true;
+    keysPressed[event.key] = true;
 });
 
 //If button is released, remove it from keysPressed array.
 document.addEventListener('keyup', (event) => {
-   delete keysPressed[event.key];
+    delete keysPressed[event.key];
 });
+
+//When the page is closed delete the user's file
+window.onbeforeunload = function() {
+    firebase.database().ref(roomcode + '/users/').set({});
+};
+window.onunload = function() {
+    firebase.database().ref(roomcode + '/users/').set({});
+};
 
 //Onblur remove pressed keys. Prevents character getting stuck in a certain direction.
 window.onblur = function() {
-   keysPressed = {};
-	 console.log('unfocused!')
+    keysPressed = {};
+    //console.log('unfocused!')
 };
 </script>
 </body>
