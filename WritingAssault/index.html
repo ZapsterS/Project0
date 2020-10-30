@@ -1,6 +1,17 @@
 <!DOCTYPE html>
 <html>
 <head>
+<!--
+
+THIS VERSION HAS REMOVED DATABASE FEATURES.
+THIS WEBSITE IS STILL FUNCTIONAL (hopefully)
+
+Database features that have been removed includes, but not limited to,
+Version and Front page message.
+
+However all minigame data is still intact.
+
+-->
 <style type="text/css">
 body{
 	background-position: center;
@@ -498,7 +509,7 @@ admin_data_pam_ref.on('value', function(doc) {
 		alert(admin_data_pam_data);
 	}
 });
-I leave this here because this was a really stupid idea of mine. 
+I leave this here because this was a really stupid idea of mine.
 Its really cool. Just stupid
 */
 
@@ -507,10 +518,6 @@ function createRoom(roomcode) {
 	admin_data_roomscreated_ref = firebase.database().ref('_admin_data');
 	admin_data_roomscreated_ref.once('value', function(doc) {
 		admin_data_roomscreated_data = doc.val();
-		newroomscreated = admin_data_roomscreated_data._roomscreated + 1;
-		firebase.database().ref('_admin_data/').update({
-			_roomscreated: newroomscreated,
-		});
 	})
 
 	console.log('called createRoom')
@@ -572,7 +579,6 @@ function create() {
 		document.getElementById('end_game_div').style.display = 'none';
 		document.getElementById('front_page_message_div').style.display = 'none';
 		document.getElementById('prompt_screen_subheader').style.display = 'none';
-		document.getElementById('admin_bottom_text_roomscreated').style.display = 'none';
 		break;
 		case 2:
 		document.getElementById('joingame_div').style.display = 'none';
