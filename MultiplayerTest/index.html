@@ -1,6 +1,14 @@
-
 <!DOCTYPE html>
 <html>
+<!--
+TO-DO!
+- Powerups
+  -Speed
+	-Color?
+	-invisibility?
+- Competitiveness
+  -Ways to kill players.
+-->
 <head>
 <style type="text/css">
 body{
@@ -60,7 +68,15 @@ p {
 	margin-left: -30%;
 	padding: 0px 0px;
 }
+.pellet {
+	width: 10px;
+	height: 10px;
+	background-color: #6ec271;
+	display: inline-block;
+	border-radius: 50%;
+}
 .player {
+	z-index: 10;
 	width: 30px;
 	height: 30px;
 	background-color: #cfaa30;
@@ -72,6 +88,7 @@ p {
 	display: inline-block;
 }
 #host_player {
+	z-index: 11;
 	-webkit-transition: all 0s ease;
   -moz-transition: all 0s ease;
   transition: all 0s ease;
@@ -79,12 +96,16 @@ p {
 .player_nametag {
 	background-color: rgba(0, 66, 99, 0);
 	transform: translate(-0px, -23px);
+	padding: 0px;
 	width: 280px;
 	margin-left: -140px;
+	line-height: 1;
 	position: absolute;
 	text-align: center;
 	display: inline-block;
 	color: black;
+}
+#host_player_prestigetext {
 }
 .bottom_div {
 	font-family: 'supria_sans';
@@ -137,7 +158,7 @@ p {
 	background-color: rgba(0, 66, 99, 0);
 	height: 4000px;
 	width: 4000px;
-	margin: 500px;
+	margin: 1000px;
 }
 </style>
 	<title>MultiplayerTest</title>
@@ -155,8 +176,12 @@ p {
 <div class="borderbackground">
 	<div class="border" id="border">
 		<div class="player" id="host_player">
-			<div class="player_nametag" style="transform: translate(-0px, -40px);">
-				<p id="host_player_nametext">???</p>
+
+			<div class="player_nametag">
+				<p style="padding:0px; margin: 0; padding: 0;" id="host_player_nametext">???</p>
+				<!-- This pristige system is set up for the host, I just dont like the formatting. For now prestige will be a value in the database, saved in the host's webpage, but never displayed.
+			Other player's prestige is NOT coded in yet. -->
+				<p style="padding:0px; margin: 0; padding: 0;" id="host_player_prestigetext"></p>
 			</div>
 		</div>
 	</div>
@@ -198,19 +223,31 @@ var database = firebase.database();
 </script>
 
 <script>
-var border_limits = [500, 0, 0, 2000, 2000]; //Margins, Minimum x, minimum y, maximum x, maximum y
+var border_limits = [1000, 0, 0, 2000, 2000]; //Margins, Minimum x, minimum y, maximum x, maximum y
 var host_player_position = [400, 400]; //Default host spawn position
 var host_player_identity_x = host_player_position[0]; //Set players x
 var host_player_identity_y = host_player_position[1]; //Set players y
-var player_size = 30; //Used for collision.
+var player_size = 10; //Set as player width&height at the start of the game && Used for collision
+var default_player_size = 10; //Default playersize
 var movementspeed = 10; //Deafult player movementspeed
 var keysPressed = {}; //Keyspressed for movement
 var roomcode; //Default roomcode is "multiplayer_test"
-var version = '1.1.1'; //version data
+var version = '1.1.2'; //version data
 var style_modifier; //The data in parentheses. Used for special styles
 var host_player_identity; //The element of the host player
 var angle_count = 0; //Used for host spin animation
+var player_position_size_info = {x: host_player_position[0], y: host_player_position[1], size: default_player_size}
+var pellet_width = 10; //LINKED WITH CSS. USED FOR COLLISION
+var px_per_pellet = 2; //SIZE IN PIXELS TO GROW PER PELLET
+var pellet_count;
+var room_pellet_limit = 100;
+var default_roomcode = "multiplayer_test";
+var host_prestige = 0;
 document.getElementById('version_bottom_text').innerHTML = '<br><br>' + version;
+
+var host_player_identity = document.getElementById('host_player');
+host_player_identity.style.width = default_player_size + 'px';
+host_player_identity.style.height = default_player_size + 'px';
 
 function getUrlVars() {
     var vars = [],
@@ -232,12 +269,14 @@ function getUrlVars() {
 
 */
 
+
+
 //If there is a roomcode in the URL, set the roomcode.
 var roomcode_url = getUrlVars()["rm"];
 if (roomcode_url != undefined) {
     roomcode = roomcode_url;
 } else {
-	roomcode = "multiplayer_test";
+	roomcode = default_roomcode;
 }
 console.log('roomcode = ', roomcode);
 
@@ -248,6 +287,7 @@ if (/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elain
 }
 
 
+// NAME SYSTEM =====================================================================
 //Name length limit of 20! Add the user to the database!
 var name_raw = getUrlVars()["name"];
 if (name_raw == undefined) {
@@ -265,10 +305,12 @@ if (name_raw == undefined) {
         firebase.database().ref(roomcode + '/users/' + name_raw).set({
             username: name_raw,
             x: host_player_position[0],
-            y: host_player_position[1]
+            y: host_player_position[1],
+						size: default_player_size,
+						prestige: host_prestige
         });
     }
-} else {
+	} else {
     //If URL var does include a name...
     style_modifier = name_raw.substring(name_raw.indexOf("(") + 1, name_raw.indexOf(")"));
     name_style_modifier_remove = name_raw.replace(/ *\([^)]*\) */g, "");
@@ -277,11 +319,99 @@ if (name_raw == undefined) {
     firebase.database().ref(roomcode + '/users/' + name_raw).set({
         username: name_raw,
         x: host_player_position[0],
-        y: host_player_position[1]
+        y: host_player_position[1],
+				size: default_player_size,
+				prestige: host_prestige
     });
 }
 host_player_position_update();
 
+
+// ROOMCODE/OBJECTS FUNCTIONS =========================================================
+//Check if object file is updated.
+var roomcode_objects_pellet_ref = firebase.database().ref(roomcode + '/objects/pellets/');
+roomcode_objects_pellet_ref.on('child_added', function(doc) {
+    roomcode_objects_pellet_data = doc.val();
+    newpellet_id = roomcode_objects_pellet_data.type;
+    newpellet_positionx = roomcode_objects_pellet_data.x;
+    newpellet_positiony = roomcode_objects_pellet_data.y;
+    createPelletInBrowser(newpellet_id, newpellet_positionx, newpellet_positiony)
+});
+
+//Pellet SPAWN IF THERE IS LESS THAN [room_pellet_limit]
+//CALLED WHENEVER THE HOST EATS A PELLET & ON HOST JOIN!
+function pellet_check_and_create() {
+	pellet_count = document.querySelectorAll('.pellet').length;
+	var pellets_to_create = room_pellet_limit - pellet_count;
+	//console.log('pellet_count =', pellet_count);
+	//console.log('pellets_to_create = ', pellets_to_create);
+	createPelletsInDatabase(pellets_to_create);
+}
+
+//AFTER A SHORT TIME, CHECK THE PELLET COUNT [GIVES TIME FOR PELLETS TO SPAWN]
+setTimeout(function(){
+pellet_check_and_create()
+}, 3000);
+
+//Create pellet div in browser
+//Only works if the pellet exists in the database.
+function createPelletInBrowser(id, x, y) {
+	var newPellet = document.createElement("div");
+	newPellet.setAttribute('class', 'pellet ');
+	newPellet.setAttribute("id", id);
+	document.getElementById("border").appendChild(newPellet);
+	var newPellet_ref = document.getElementById(id);
+	newPellet_ref.style.position = "absolute";
+	newPellet_ref.style.left = x + 'px';
+	newPellet_ref.style.top = y + 'px';
+}
+
+//Create pellet in database.
+function createPelletsInDatabase(num_of_pellets) {
+	var i;
+	for(i = 0; i < num_of_pellets; i++) {
+		//Give the new pellet a random value from 1-9999
+		var ranpelletid = Math.floor(Math.random() * 9999 + 1);
+		var pelletname = 'pellet_' + ranpelletid;
+		var pelletrandomx = Math.floor(Math.random() * border_limits[3])
+		var pelletrandomy = Math.floor(Math.random() * border_limits[4])
+		firebase.database().ref(roomcode + '/objects/pellets/' + pelletname).set({
+			type: pelletname,
+			x: pelletrandomx,
+			y: pelletrandomy
+		});
+		console.log('new pellet - ' + pelletrandomx + ', ' + pelletrandomy)
+	}
+}
+
+//Pellet deleted
+var roomcode_objects_pellet_ref = firebase.database().ref(roomcode + '/objects/pellets/');
+roomcode_objects_pellet_ref.on('child_removed', function(doc) {
+	roomcode_objects_pellet_remove_data = doc.val();
+	removed_pellet = roomcode_objects_pellet_remove_data.type;
+  deletePelletInBrowser(removed_pellet);
+});
+
+//Delete pellet from user's screen.
+function deletePelletInBrowser(id) {
+	allpellets = document.getElementsByClassName("pellet");
+	var i;
+	for (i = 0; i < allpellets.length; i++) {
+			var current_pellet_id = allpellets[i].id;
+			if (current_pellet_id == id) {
+					allpellets[i].remove();
+			}
+	}
+}
+
+//Delete pellet from database
+function deletePelletInDatabase(id) {
+	firebase.database().ref(roomcode + '/objects/pellets/' + id).set({
+	});
+}
+
+
+//PLAYER POSITIONS ====================================================================
 //Start checking for updates in the databaseURL
 var roomcode_users_ref = firebase.database().ref(roomcode + '/users');
 roomcode_users_ref.on('child_added', function(doc) {
@@ -289,18 +419,19 @@ roomcode_users_ref.on('child_added', function(doc) {
     var newchild_username = roomcode_users_ref_data.username;
     var newchild_positionx = roomcode_users_ref_data.x;
     var newchild_positiony = roomcode_users_ref_data.y;
+		var newchild_size = roomcode_users_ref_data.size;
     deletePlayers();
-    createPlayer(newchild_username, newchild_positiony, newchild_positionx);
-    console.log(newchild_username);
+    createPlayer(newchild_username, newchild_positionx, newchild_positiony, newchild_size);
 });
 
-//Child changed
+//Child changed/player move
 var roomcode_users_ref = firebase.database().ref(roomcode + '/users');
 roomcode_users_ref.on('child_changed', function(doc) {
     roomcode_users_ref_data = doc.val();
     new_child_username = roomcode_users_ref_data.username;
     new_child_y = roomcode_users_ref_data.y;
     new_child_x = roomcode_users_ref_data.x;
+		new_child_size = roomcode_users_ref_data.size;
     //console.log('child changed');
     //createPlayer(new_child_username, new_child_x, new_child_y);
     //Try will check for errors as it runs
@@ -311,8 +442,10 @@ roomcode_users_ref.on('child_changed', function(doc) {
             current_new_child_id = 'host_' + new_child_username;
             var document_new_child = document.getElementById(current_new_child_id);
             document_new_child.style.position = "absolute";
-            document_new_child.style.left = new_child_y + 'px';
-            document_new_child.style.top = new_child_x + 'px';
+            document_new_child.style.left = new_child_x + 'px';
+            document_new_child.style.top = new_child_y + 'px';
+						document_new_child.style.width = new_child_size + 'px';
+						document_new_child.style.height = new_child_size + 'px';
         }
     } catch (err) {
         //If an error happens when updating player position, Check the database and create any and all players. Should fix the errors in most cases.
@@ -323,7 +456,7 @@ roomcode_users_ref.on('child_changed', function(doc) {
     }
 });
 
-//Child deleted
+//Child deleted - Player left
 var roomcode_users_ref = firebase.database().ref(roomcode + '/users');
 roomcode_users_ref.on('child_removed', function(doc) {
     deletePlayers('all');
@@ -344,57 +477,9 @@ function deletePlayers(username) {
     }
 }
 
-//Update player host position.
-function host_player_position_update() {
-    //console.log(host_player_position);
-    host_player_identity = document.getElementById('host_player');
-    //We got the style modifier back when the host joins the game
-    //var style_modifier = name_raw.substring(name_raw.indexOf("(")+1,name_raw.indexOf(")"));
-
-    //SpecialEffects
-    if (style_modifier.includes('0x4658')) {
-        host_player_identity.style.background = "linear-gradient(#5BCEFA 0%,#5BCEFA 20%,#F5A9B8 20%,#F5A9B8 40%,#ffffff 40%,#ffffff 60%,#F5A9B8 60%,#F5A9B8 80%,#5BCEFA 80%)";
-    }
-    if (style_modifier.includes('0x3032')) {
-        host_player_identity.style.background = "linear-gradient(#D42C00 0%,#D42C00 20%,#FD9855 20%,#FD9855 40%,#ffffff 40%,#ffffff 60%,#D161A2 60%,#D161A2 80%,#A20161 80%)";
-    }
-    if (style_modifier.includes('big')) {
-        host_player_current_transforms = host_player_identity.style.transform;
-        if (host_player_current_transforms.includes('scale')) {} else {
-            host_player_identity.style.transform += "scale(3, 3)";
-        }
-    }
-    if (style_modifier.includes('spin')) {
-        angle_count += 10;
-        if (angle_count > 100) {
-            angle_count = 0;
-        }
-        host_player_identity.style.transform += "rotate(" + angle_count + "deg)";
-    }
-    //Movementspeed is host side. So only the host is affected.
-    if (style_modifier.includes('fast')) {
-        movementspeed = 20;
-    }
-
-
-    host_player_identity_x = host_player_position[1];
-    host_player_identity_y = host_player_position[0];
-    host_player_identity.style.position = "absolute";
-    host_player_identity.style.left = host_player_identity_x + 'px';
-    host_player_identity.style.top = host_player_identity_y + 'px';
-
-    document.getElementById('host_player_nametext').innerHTML = name_filtered;
-    firebase.database().ref(roomcode + '/users/' + name_raw).set({
-        username: name_raw,
-        x: host_player_position[0],
-        y: host_player_position[1]
-    });
-}
-
-
 
 //Creates a player element with a custom name. Does not include host
-function createPlayer(name, x, y) {
+function createPlayer(name, x, y, size) {
     if (name != name_raw) {
         deletePlayers(name);
         var allplayers = document.getElementsByClassName(name);
@@ -418,9 +503,6 @@ function createPlayer(name, x, y) {
         if (new_user_style_modifier.includes('0x3032')) {
             newPlayer.style.background = "linear-gradient(#D42C00 0%,#D42C00 20%,#FD9855 20%,#FD9855 40%,#ffffff 40%,#ffffff 60%,#D161A2 60%,#D161A2 80%,#A20161 80%)";
         }
-        if (new_user_style_modifier.includes('big')) {
-            newPlayer.style.transform = "scale(3, 3)";
-        }
         if (new_user_style_modifier.includes('spin')) {
             var new_user_classes = newPlayer.className;
             newPlayer.setAttribute('class', new_user_classes + '(spin)');
@@ -435,10 +517,130 @@ function createPlayer(name, x, y) {
         newcreateplayer.style.position = "absolute";
         newcreateplayer.style.left = x + 'px';
         newcreateplayer.style.top = y + 'px';
+				newcreateplayer.style.width = size + 'px';
+				newcreateplayer.style.height = size + 'px';
     }
 }
 
 
+//HOST POSITION UPDATE ============================================================
+//Update player host position.
+function host_player_position_update() {
+    //console.log(host_player_position);
+    host_player_identity = document.getElementById('host_player');
+    //We got the style modifier back when the host joins the game
+    //var style_modifier = name_raw.substring(name_raw.indexOf("(")+1,name_raw.indexOf(")"));
+
+    //SpecialEffects
+    if (style_modifier.includes('0x4658')) { //Trans flag
+        host_player_identity.style.background = "linear-gradient(#5BCEFA 0%,#5BCEFA 20%,#F5A9B8 20%,#F5A9B8 40%,#ffffff 40%,#ffffff 60%,#F5A9B8 60%,#F5A9B8 80%,#5BCEFA 80%)";
+    }
+    if (style_modifier.includes('0x3032')) { //Lesbian flag
+        host_player_identity.style.background = "linear-gradient(#D42C00 0%,#D42C00 20%,#FD9855 20%,#FD9855 40%,#ffffff 40%,#ffffff 60%,#D161A2 60%,#D161A2 80%,#A20161 80%)";
+    }
+    if (style_modifier.includes('grow')) { //Constantly grow by 1
+        hostGrow(1);
+    }
+    if (style_modifier.includes('spin')) { //Constantly spin
+        angle_count += 10;
+        if (angle_count > 100) {
+            angle_count = 0;
+        }
+        host_player_identity.style.transform += "rotate(" + angle_count + "deg)";
+    }
+    //Movementspeed is host side. So only the host is affected.
+    if (style_modifier.includes('fast')) {
+        movementspeed = 20;
+    }
+
+
+    host_player_identity_x = host_player_position[0];
+    host_player_identity_y = host_player_position[1];
+    host_player_identity.style.position = "absolute";
+    host_player_identity.style.left = host_player_identity_x + 'px';
+    host_player_identity.style.top = host_player_identity_y + 'px';
+		if(host_prestige != 0) {
+	    document.getElementById('host_player_nametext').innerHTML = host_prestige + '<br>' + name_filtered;
+		} else {
+			document.getElementById('host_player_nametext').innerHTML = name_filtered;
+		}
+		firebase.database().ref(roomcode + '/users/' + name_raw).set({
+        username: name_raw,
+        x: host_player_position[0],
+        y: host_player_position[1],
+				size: player_size,
+				prestige: host_prestige
+    });
+		////The commented code checks to see if the player position updates. For now we will disable it. inableing this could help performance.
+		////However, the commented code limits it to one pellet collision PER MOVE.
+		//if(player_position_size_info.x != host_player_position[0] || player_position_size_info.y != host_player_position[1]) {
+			//Get host information including size
+			player_position_size_info = {x: host_player_position[0], y: host_player_position[1], size: player_size}
+			//console.log(player_position_size_info)
+			//Get all pellet information on screen.
+			var allpellets_ref = document.getElementsByClassName("pellet");
+			var i;
+			//For each pellet, check if the player is overlapping it
+			for (i = 0; i < allpellets_ref.length; i++) {
+					var current_pellet_id = allpellets_ref[i].id;
+					var roomcode_objects_pellet_ref = firebase.database().ref(roomcode + '/objects/pellets/' + current_pellet_id);
+					roomcode_objects_pellet_ref.on('value', function(doc) {
+						roomcode_objects_pellet_data = doc.val();
+						if(roomcode_objects_pellet_data != undefined) {
+							roomcode_objects_pellet_data_type = roomcode_objects_pellet_data.type;
+							roomcode_objects_pellet_data_x = roomcode_objects_pellet_data.x;
+							roomcode_objects_pellet_data_y = roomcode_objects_pellet_data.y;
+						  //deletePelletInBrowser(removed_pellet);
+							//pellet_width is the default width for pellets.
+							//This does check every pellet, however the deletePelletInBrowser will only delete one pellet.
+							if (player_position_size_info.x < roomcode_objects_pellet_data_x + pellet_width && player_position_size_info.x + player_size > roomcode_objects_pellet_data_x && player_position_size_info.y < roomcode_objects_pellet_data_y + pellet_width && player_position_size_info.y + player_size > roomcode_objects_pellet_data_y) {
+								//console.log('pellet - collide! ', current_pellet_id);
+								deletePelletInBrowser(current_pellet_id);
+								deletePelletInDatabase(current_pellet_id);
+								hostGrow(px_per_pellet);
+								//CREATE A NEW PELLET AFTER EATING ONE!
+								pellet_check_and_create()
+							}
+						}
+					});
+			}
+			//if(player_position_size_info.x < )
+		//}
+}
+
+//Set host size
+function setSize(grow_set) {
+	var host_player_identity = document.getElementById('host_player');
+	player_size = grow_set;
+	host_player_identity.style.width = grow_set + 'px';
+	host_player_identity.style.height = grow_set + 'px';
+}
+
+//host grow
+function hostGrow(grow_add) {
+	var host_player_identity = document.getElementById('host_player');
+	var new_player_size = player_size + grow_add;
+	player_size = new_player_size;
+	host_player_identity.style.width = new_player_size + 'px';
+	host_player_identity.style.height = new_player_size + 'px';
+	//CHECK IF HOST EXCEEDES THE BORDER WIDTH
+	if (player_size > border_limits[3]) {
+		setSize(default_player_size);
+		host_prestige += 1;
+		console.log('HOST EXCEEDES BORDER LIMIT - Prestige = ', host_prestige)
+		host_update_prestige(host_prestige)
+	}
+}
+
+function host_update_prestige(prestige_ammount) {
+	host_prestige = prestige_ammount;
+	firebase.database().ref(roomcode + '/users/' + name_raw).update({
+			prestige: host_prestige
+	});
+	document.getElementById('host_player_nametext').innerHTML = host_prestige + '<br>' + name_filtered;
+}
+
+//SPECIAL EFFECTS ===========================================================
 //Used for special player modifier.
 function spin(playertospin) {
     angle_count += 10;
@@ -452,6 +654,8 @@ function spin(playertospin) {
 }
 
 
+
+//HOST KEYPRESS FUNCTION ==========================================================
 //Constantly runs. Checks if a button is being held.
 check_movement_button();
 
@@ -484,12 +688,14 @@ function check_movement_button() {
             host_player_identity_x = border_limits[4] - player_size;
         }
     }
-    host_player_position = [host_player_identity_y, host_player_identity_x];
+    host_player_position = [host_player_identity_x, host_player_identity_y];
     host_player_position_update();
 
-    //Center player in screen
-    window.scrollTo(host_player_identity_x + (player_size / 2), host_player_identity_y + 15);
+		var window_w = window.innerWidth;
+		var window_h = window.innerHeight;
 
+    //Center player in screen
+    window.scrollTo((host_player_identity_x + border_limits[0]) - (window_w / 2) + (player_size / 2), (host_player_identity_y + border_limits[0]) - (window_h / 2) + (player_size / 2));
 
     setTimeout(function() {
         check_movement_button();
