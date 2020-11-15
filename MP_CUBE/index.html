@@ -12,6 +12,7 @@ TO-DO!
 <head>
 <style type="text/css">
 body{
+	z-index: -10; /* PlayerOverlap uses z-index. */
 	background-position: center;
 	background-color: #d1d1d1;
 	margin: 0px 0px;
@@ -76,7 +77,7 @@ p {
 	border-radius: 50%;
 }
 .player {
-	z-index: 10;
+	/*z-index: 10;  Z-Index is used for player overlap in functions.  */
 	width: 30px;
 	height: 30px;
 	background-color: #cfaa30;
@@ -88,7 +89,6 @@ p {
 	display: inline-block;
 }
 #host_player {
-	z-index: 11;
 	-webkit-transition: all 0s ease;
   -moz-transition: all 0s ease;
   transition: all 0s ease;
@@ -143,6 +143,7 @@ p {
                                   supported by Chrome, Edge, Opera and Firefox */
 }
 .border {
+	z-index: -9; /* PlayerOverlap uses z-index. */
 	/* Border is obsolete. However the players are created under this border.
  	Deleting this will cause problems.*/
 	background-color: rgba(255, 255, 255, 1);
@@ -153,15 +154,15 @@ p {
 	position: relative;
 }
 .borderbackground {
+	z-index: -9; /* PlayerOverlap uses z-index. */
 	/* Border is obsolete. However the players are created under this border.
  	Deleting this will cause problems.*/
-	background-color: rgba(0, 66, 99, 0);
 	height: 4000px;
 	width: 4000px;
 	margin: 1000px;
 }
 </style>
-	<title>MultiplayerTest</title>
+	<title>MP_CUBE.IO</title>
 	<link rel="shortcut icon" type="image/png" href="https://zapsters.github.io/Home/images/ZapsterGames.png"/>
 
 </head>
@@ -172,11 +173,9 @@ p {
 	<p class="sub">Multiplayer Test</p>
 </div>
 -->
-
-<div class="borderbackground">
+<div class="borderbackground" id="borderbackground">
 	<div class="border" id="border">
 		<div class="player" id="host_player">
-
 			<div class="player_nametag">
 				<p style="padding:0px; margin: 0; padding: 0;" id="host_player_nametext">???</p>
 				<!-- This pristige system is set up for the host, I just dont like the formatting. For now prestige will be a value in the database, saved in the host's webpage, but never displayed.
@@ -186,7 +185,6 @@ p {
 		</div>
 	</div>
 </div>
-
 <div class="bottom_controls_div" id="controls" style="display: none">
 	<div ontouchstart="keysPressed['w'] = true;" ontouchend="delete keysPressed['w'];" style="margin: 0px 0px 175px 175px;" usemap="#mobile_direction" ontouchstart="keysPressed['w'] = true;" width="155px" height="155px" class="fix noselect"></div>
 	<div ontouchstart="keysPressed['s'] = true;" ontouchend="delete keysPressed['s'];" style="transform: rotate(180deg); margin: 0px 0px 0px 175px;" usemap="#mobile_direction" ontouchstart="keysPressed['w'] = true;" width="155px" height="155px" class="fix noselect" src="https://zapsters.github.io/Project0/images/arrow.png"></div>
@@ -224,7 +222,14 @@ var database = firebase.database();
 
 <script>
 var border_limits = [1000, 0, 0, 2000, 2000]; //Margins, Minimum x, minimum y, maximum x, maximum y
-var host_player_position = [400, 400]; //Default host spawn position
+var border_identity = document.getElementById('border');
+border_identity.style.height = border_limits[3] + 'px';
+border_identity.style.width = border_limits[4] + 'px';
+
+var host_player_position_randomy = Math.floor(Math.random() * border_limits[3])
+var host_player_position_randomx = Math.floor(Math.random() * border_limits[4])
+var host_player_position = [host_player_position_randomx, host_player_position_randomy]; //SpawnPosition for host
+
 var host_player_identity_x = host_player_position[0]; //Set players x
 var host_player_identity_y = host_player_position[1]; //Set players y
 var player_size = 10; //Set as player width&height at the start of the game && Used for collision
@@ -232,7 +237,7 @@ var default_player_size = 10; //Default playersize
 var movementspeed = 10; //Deafult player movementspeed
 var keysPressed = {}; //Keyspressed for movement
 var roomcode; //Default roomcode is "multiplayer_test"
-var version = '1.1.2'; //version data
+var version = '1.1.3'; //version data
 var style_modifier; //The data in parentheses. Used for special styles
 var host_player_identity; //The element of the host player
 var angle_count = 0; //Used for host spin animation
@@ -240,12 +245,18 @@ var player_position_size_info = {x: host_player_position[0], y: host_player_posi
 var pellet_width = 10; //LINKED WITH CSS. USED FOR COLLISION
 var px_per_pellet = 2; //SIZE IN PIXELS TO GROW PER PELLET
 var pellet_count;
-var room_pellet_limit = 100;
+var room_pellet_limit = 50; //Limit for pellets in a room. Room will not create a pellet if it goes higher than the limit.
 var default_roomcode = "multiplayer_test";
 var host_prestige = 0;
+var started_host_style = 0; //used for host style.
 document.getElementById('version_bottom_text').innerHTML = '<br><br>' + version;
 
+var collision_detection = true; //If true, check collision
+
 var host_player_identity = document.getElementById('host_player');
+var host_player_nametag_identity = document.getElementById('host_player_nametext');
+host_player_identity.style.zIndex = player_size; //Set host Z-Index for player overlap
+host_player_nametag_identity.style.zIndex = player_size; //Set Z-Index of nametag
 host_player_identity.style.width = default_player_size + 'px';
 host_player_identity.style.height = default_player_size + 'px';
 
@@ -279,6 +290,26 @@ if (roomcode_url != undefined) {
 	roomcode = default_roomcode;
 }
 console.log('roomcode = ', roomcode);
+
+//If there is a darkmode in the URL, set the style
+var darkmode_url = getUrlVars()["d"];
+if (darkmode_url != undefined) {
+    darkmode = darkmode_url;
+} else {
+	darkmode = '0';
+}
+
+if(darkmode=='1') {
+	console.log('darkmode!', darkmode);
+	document.getElementById("border").style.backgroundColor = "rgba(0, 0, 0, 0.4)"; //BorderBackground
+	document.getElementById("border").style.borderColor = "rgba(255, 255, 255, 0.1)"; //BorderColor
+	document.getElementById("host_player_nametext").style.color = "rgba(255, 255, 255, 1)"; //Host player_nametag
+	document.getElementById("host_player_prestigetext").style.color = "rgba(255, 255, 255, 1)"; //Host prestigetext
+	document.body.style.backgroundColor = "#222"; //Body background
+	darkmode_player_background = "#c28400";
+	document.getElementById("host_player").style.backgroundColor = darkmode_player_background; //Host_player background
+
+}
 
 //Check if the user is using a mobile devide then show mobile controls
 if (/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|ipad|iris|kindle|Android|Silk|lge |maemo|midp|mmp|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows (ce|phone)|xda|xiino/i.test(navigator.userAgent) ||
@@ -367,14 +398,18 @@ function createPelletInBrowser(id, x, y) {
 }
 
 //Create pellet in database.
-function createPelletsInDatabase(num_of_pellets) {
+function createPelletsInDatabase(num_of_pellets, x, y) {
 	var i;
 	for(i = 0; i < num_of_pellets; i++) {
 		//Give the new pellet a random value from 1-9999
 		var ranpelletid = Math.floor(Math.random() * 9999 + 1);
 		var pelletname = 'pellet_' + ranpelletid;
-		var pelletrandomx = Math.floor(Math.random() * border_limits[3])
-		var pelletrandomy = Math.floor(Math.random() * border_limits[4])
+		var pelletrandomy = Math.floor(Math.random() * border_limits[3])
+		var pelletrandomx = Math.floor(Math.random() * border_limits[4])
+		if(x != undefined && y != undefined) {
+			pelletrandomx = x;
+			pelletrandomy = y;
+		}
 		firebase.database().ref(roomcode + '/objects/pellets/' + pelletname).set({
 			type: pelletname,
 			x: pelletrandomx,
@@ -446,6 +481,7 @@ roomcode_users_ref.on('child_changed', function(doc) {
             document_new_child.style.top = new_child_y + 'px';
 						document_new_child.style.width = new_child_size + 'px';
 						document_new_child.style.height = new_child_size + 'px';
+						document_new_child.style.zIndex = new_child_size;
         }
     } catch (err) {
         //If an error happens when updating player position, Check the database and create any and all players. Should fix the errors in most cases.
@@ -489,7 +525,12 @@ function createPlayer(name, x, y, size) {
         newPlayer.setAttribute("id", "host_" + name);
         var newPlayerNametag = document.createElement("div");
         newPlayerNametag.setAttribute('class', 'player_nametag');
-
+				newPlayer.style.zIndex = size;
+				if(darkmode==1) { //If darkmode is active...
+					console.log('playercreate & darkmode!')
+					newPlayer.style.backgroundColor = darkmode_player_background; //Set joined player background
+					newPlayerNametag.style.color = 'white';
+				}
 
         new_user_style_modifier = name.substring(name.indexOf("(") + 1, name.indexOf(")"));
         new_user_name_style_modifier_remove = name.replace(/ *\([^)]*\) */g, "");
@@ -524,6 +565,31 @@ function createPlayer(name, x, y, size) {
 
 
 //HOST POSITION UPDATE ============================================================
+//Get Cursor POSITION --- UNUSED!!!! NOT WORKING!!
+var cursor_DEV_ACTIVE = 0;
+if(cursor_DEV_ACTIVE == 1) {
+	window.onload = init;
+	function init() {
+		if (window.Event) {
+		document.captureEvents(Event.MOUSEMOVE);
+		}
+		document.onmousemove = getCursorXY;
+	}
+
+	function getCursorXY(e) {
+		mouseX = e.pageX - border_limits[0]; //Get mouseX
+	 	mouseY = e.pageY - border_limits[0]; //Get mouseY
+		r_mouseX = Math.round(mouseX / 10) * 10; //Round mouseX
+		r_mouseY = Math.round(mouseY / 10) * 10; //Round mouseY
+		slope = (player_position_size_info.y - r_mouseY) / (player_position_size_info.x - r_mouseX)
+		teleport(player_position_size_info.x, (player_position_size_info.x+10*slope))
+		console.log(player_position_size_info.x+10*slope)
+		test_val = Math.round(slope * movementspeed); //y=slop * movement -- SOLVING FOR Y
+		test_val2 = Math.round(slope * test_val);
+		//teleport(test_val, test_val2)
+	}
+}
+
 //Update player host position.
 function host_player_position_update() {
     //console.log(host_player_position);
@@ -549,10 +615,15 @@ function host_player_position_update() {
         host_player_identity.style.transform += "rotate(" + angle_count + "deg)";
     }
     //Movementspeed is host side. So only the host is affected.
-    if (style_modifier.includes('fast')) {
-        movementspeed = 20;
-    }
-
+		if(started_host_style==0) {
+			started_host_style = 1;
+			if (style_modifier.includes('fast')) {
+	        movementspeed = 100;
+	    }
+			if (style_modifier.includes('big')) {
+	        hostGrow(100)
+	    }
+		}
 
     host_player_identity_x = host_player_position[0];
     host_player_identity_y = host_player_position[1];
@@ -593,7 +664,8 @@ function host_player_position_update() {
 						  //deletePelletInBrowser(removed_pellet);
 							//pellet_width is the default width for pellets.
 							//This does check every pellet, however the deletePelletInBrowser will only delete one pellet.
-							if (player_position_size_info.x < roomcode_objects_pellet_data_x + pellet_width && player_position_size_info.x + player_size > roomcode_objects_pellet_data_x && player_position_size_info.y < roomcode_objects_pellet_data_y + pellet_width && player_position_size_info.y + player_size > roomcode_objects_pellet_data_y) {
+							player_size_collision = player_size;
+							if (player_position_size_info.x < roomcode_objects_pellet_data_x + pellet_width && player_position_size_info.x + player_size_collision > roomcode_objects_pellet_data_x && player_position_size_info.y < roomcode_objects_pellet_data_y + pellet_width && player_position_size_info.y + player_size_collision > roomcode_objects_pellet_data_y) {
 								//console.log('pellet - collide! ', current_pellet_id);
 								deletePelletInBrowser(current_pellet_id);
 								deletePelletInDatabase(current_pellet_id);
@@ -611,20 +683,26 @@ function host_player_position_update() {
 //Set host size
 function setSize(grow_set) {
 	var host_player_identity = document.getElementById('host_player');
+	var host_player_nametag_identity = document.getElementById('host_player_nametext');
 	player_size = grow_set;
 	host_player_identity.style.width = grow_set + 'px';
 	host_player_identity.style.height = grow_set + 'px';
+	host_player_identity.style.zIndex = player_size;
+	host_player_nametag_identity.style.zIndex = player_size; //Set Z-Index of nametag
 }
 
 //host grow
 function hostGrow(grow_add) {
 	var host_player_identity = document.getElementById('host_player');
+	var host_player_nametag_identity = document.getElementById('host_player_nametext');
 	var new_player_size = player_size + grow_add;
 	player_size = new_player_size;
 	host_player_identity.style.width = new_player_size + 'px';
 	host_player_identity.style.height = new_player_size + 'px';
+	host_player_identity.style.zIndex = new_player_size;
+	host_player_nametag_identity.style.zIndex = player_size; //Set Z-Index of nametag
 	//CHECK IF HOST EXCEEDES THE BORDER WIDTH
-	if (player_size > border_limits[3]) {
+	if (player_size > border_limits[3] && collision_detection == true) {
 		setSize(default_player_size);
 		host_prestige += 1;
 		console.log('HOST EXCEEDES BORDER LIMIT - Prestige = ', host_prestige)
@@ -661,28 +739,28 @@ check_movement_button();
 
 function check_movement_button() {
     if (keysPressed['w']) {
-        if (host_player_identity_y > border_limits[1]) {
+        if (host_player_identity_y > border_limits[1] || collision_detection == false) {
             host_player_identity_y = host_player_identity_y + -movementspeed;
         } else {
             host_player_identity_y = border_limits[1];
         }
     }
     if (keysPressed['a']) {
-        if (host_player_identity_x > border_limits[2]) {
+        if (host_player_identity_x > border_limits[2] || collision_detection == false) {
             host_player_identity_x = host_player_identity_x + -movementspeed;
         } else {
             host_player_identity_x = border_limits[2];
         }
     }
     if (keysPressed['s']) {
-        if (host_player_identity_y < border_limits[3] - player_size) {
+        if (host_player_identity_y < border_limits[3] - player_size || collision_detection == false) {
             host_player_identity_y = host_player_identity_y + movementspeed;
         } else {
             host_player_identity_y = border_limits[3] - player_size;
         }
     }
     if (keysPressed['d']) {
-        if (host_player_identity_x < border_limits[4] - player_size) {
+        if (host_player_identity_x < border_limits[4] - player_size || collision_detection == false) {
             host_player_identity_x = host_player_identity_x + movementspeed;
         } else {
             host_player_identity_x = border_limits[4] - player_size;
