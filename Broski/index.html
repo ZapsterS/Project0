@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<!-- HAPPY BIRTHDAY BROSKI!!!!!
+	I hope you had a fun birthday
+    (even though I am late to give you this)
+		I kinda had something else planned but uhhhhhhhhhhh idk if its good lol
+-->
+<link rel="stylesheet" href="https://zapsters.github.io/Home/fonts/main_fonts_stylesheet.css">
+<style>
+body{
+	background-color: black;
+    color: white;
+    padding: 0px;
+    margin: 0px;
+    font-family: 'upheavtt';
+}
+.title{
+
+}
+#shadowBox {
+    background-color: rgb(0, 0, 0);
+    /* Fallback color */
+    background-color: rgba(0, 0, 0, 0);
+    /* Black w/opacity/see-through */
+    border: 0px solid;
+}
+
+.rainbow {
+    text-align: center;
+    text-decoration: underline;
+    font-size: 32px;
+    letter-spacing: 5px;
+}
+.rainbow_text_animated {
+    background: linear-gradient(to right, #6666ff, #0099ff , #00ff00, #ff3399, #6666ff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: rainbow_animation 6s ease-in-out infinite;
+    background-size: 400% 100%;
+}
+
+@keyframes rainbow_animation {
+    0%,100% {
+        background-position: 0 0;
+    }
+
+    50% {
+        background-position: 100% 0;
+    }
+}
+.border {
+	width:100%;
+    height: 200px;
+    background-color: none;
+    padding: 0px;
+    margin: 0px;
+    display: block;
+	position: relative;
+}
+.doritosDIV {
+	background-color: none;
+    left: 0px;
+    width: 30px;
+    height: 30px;
+    opacity: 1;
+    animation: fade 2s linear forwards;
+    padding: 0px;
+    position: absolute;
+    margin-top: 0px;
+    margin-left: 0px;
+	display: inline-block;
+}
+.doritosImage { 
+  width: 100%;
+  display: inherit;
+  opacity: 100;
+}
+.title {
+    margin-top: 0px;
+    margin-left: 0px;
+    z-index: 100;
+    height: 0px;
+    overflow: show;
+}
+@keyframes fade {
+  0%,100% { opacity: 0; background-color: none;}
+  30% { opacity: 1 }
+  70% { opacity: 1 }
+  100% { opacity: 0; display: none; visibility: hidden;}
+}
+</style>
+<body>
+<center>
+<div id="shadowBox" class="title">
+    <h1 class="rainbow rainbow_text_animated upheavtt">HAPPY BIRTHDAY<br>BROSKI!</h1>
+</div>
+</center>
+<div class="border" id="border">
+<div class="doritosDIV"></div>
+</div>
+<script>
+var windowwidth = window.innerWidth;
+var windowheight = window.innerHeight;
+document.getElementById("border").style.height = innerHeight + "px";
+window.onkeydown = myFunction;
+function myFunction() {
+	var randomH = Math.floor(Math.random() * innerHeight);
+    var randomW = Math.floor(Math.random() * windowwidth);
+    var randomSize = Math.floor(Math.random() * 100) + 40;
+    var randomDoritosBag = Math.floor(Math.random() * 100);
+    //randomDoritosBag = 95;
+    //alert(randomH + "/" + randomW + "" + randomSize);
+    var new_item = document.createElement('div');
+    var new_image = document.createElement('img');
+    if(randomDoritosBag>=99) {
+      new_image.src = 'https://discount-drugmart.com/product-catalog/images/itemmaster/A1C1/base/000284001992407482490.jpg';
+    } else if(randomDoritosBag>=20&&randomDoritosBag<=30) {
+    	new_image.src = 'https://jpg.hoodamath.com/large/papasscooperia_300x225.jpg';
+    } else if(randomDoritosBag>=10&&randomDoritosBag<=15) {
+    	new_image.src = 'https://i.ebayimg.com/images/g/uUIAAOSw4hldpOI~/s-l640.png';
+    } else if(randomDoritosBag>=0&&randomDoritosBag<=9) {
+      new_image.src = 'https://www.fritolayvarietypacks.com/sites/varietypacks.com/files/2020-05/00028400155861_C1C1.png';
+    } else if(randomDoritosBag==98) {
+      new_item.innerHTML = 'You play hockey right?'
+    } else if(randomDoritosBag==97) {
+      new_item.innerHTML = 'Natalie is kinda weird am i right'
+    } else if(randomDoritosBag==96) {
+      new_item.innerHTML = 'fnaf scream sound'
+    } else if(randomDoritosBag==95) {
+      new_item.innerHTML = 'if you see this tell me "i saw it"'
+    } else if(randomDoritosBag>=40&&randomDoritosBag<=50) {
+      new_image.src = '';
+    } else {
+      new_image.src = 'https://www.doritos.com/sites/doritos.com/files/styles/product_thumbnail/public/2018-08/new-nacho-cheese.png?itok=DBzG_5v6'; 
+	}
+    new_item.className = "doritosDIV";
+    new_image.className = "doritosImage";
+    new_item.style.width = randomSize+"px";
+    new_item.style.height = randomSize+"px";
+    new_item.style.left = randomW+"px";
+    new_item.style.top = randomH+"px";
+    new_item.appendChild(new_image);
+    document.getElementById('border').appendChild(new_item);
+  
+}
+</script>
+
+</body>
+</html>
+
